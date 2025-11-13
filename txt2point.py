@@ -4,7 +4,7 @@ import os
 # --- Ustawienia ---
 gdb_path = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\ArcGIS_ZMG.gdb"
 txt_path = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\data.txt"
-output_fc_name = "Punkty_z_txt"
+output_fc_name = "Punkty_z_txt" #54.528821794446145, 18.557495816016086
 
 arcpy.env.workspace = gdb_path
 # arcpy.env.overwriteOutput = True
@@ -43,7 +43,7 @@ arcpy.management.CreateFeatureclass(
     out_path=gdb_path,
     out_name=output_fc_name,
     geometry_type="POINT",
-    template="R2014_OT_ADMS_P",  # opcjonalnie: przejmij schemat (pola, domeny)
+    template="",  # opcjonalnie: przejmij schemat (pola, domeny)
     spatial_reference=spatial_reference
 )
 
