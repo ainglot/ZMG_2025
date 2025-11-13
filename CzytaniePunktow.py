@@ -7,9 +7,16 @@ ListCoor = []
 cursor = arcpy.da.SearchCursor(WarstwaPKT, ["SHAPE@X", "SHAPE@Y"])
 for row in cursor:
     print(row)
-    ListCoor += [row[0]+1000, row[1]+2000]
+    ListCoor += [[row[0]+1000, row[1]+2000]]
 del cursor
 
-arcpy.management.CreateFeatureclass("C:/output", "habitatareas.shp", "POLYGON", 
-                                    "study_quads.shp", "DISABLED", "DISABLED", 
-                                    "C:/workspace/landuse.shp")
+NowaWarstwa = "R2014_OT_ADMS_P_przesu"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POINT", 
+                                    "", "DISABLED", "DISABLED", 
+                                    WarstwaPKT)
+
+cursor = arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@X", "SHAPE@Y"])
+for coor in ListCoor:
+    cursor.insertRow(coor)
+
+del cursor
