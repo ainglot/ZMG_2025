@@ -20,6 +20,7 @@ for row in cursor:
     geom = row[0]  # obiekt geometryczny linii
     print(f"--- Obiekt {i} ---")
     
+    ListCoorOb = []
     # Iteracja po częściach (część = pojedyncza linia lub segment multipart)
     for part in geom:
         print("  Część obiektu:")
@@ -28,11 +29,12 @@ for row in cursor:
         for pnt in part:
             if pnt:  # niektóre części mogą mieć None
                 print(f"    Wierzchołek: X={pnt.X}, Y={pnt.Y}")
-                ListCoorLinie.append((pnt.X, pnt.Y))  # zapis do listy
-    
+                ListCoorOb.append((pnt.X, pnt.Y))  # zapis do listy
+    print(ListCoorOb)
+    ListCoorLinie.append(ListCoorOb)
     i += 1
 
-print(f"Liczba obiektów w warstwie: {i}")
+print(f"Liczba obiektów w warstwie: {i}, {len(ListCoorLinie)}")
 
 # Dobre praktyki: usuwamy kursor, aby zwolnić blokadę do pliku .gdb
 del cursor
