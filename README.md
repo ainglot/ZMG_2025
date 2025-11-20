@@ -6,7 +6,7 @@ Repozytorium zawiera materiały, skrypty i dane wykorzystywane w projekcie **ZMG
 
 ```
 ZMG_2025/
-├── data/                 # Dane wejściowe wykorzystywane w analizach
+├── WstepPython.py        # Zapoznanie się z Pythonem na zajęciach
 ├── scripts/              # Skrypty Python/ArcPy wykorzystywane w projekcie
 ├── results/              # Wyniki analiz, mapy, wykresy, raporty
 ├── docs/                 # Dokumentacja pomocnicza
