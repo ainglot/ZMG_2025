@@ -45,3 +45,36 @@ print(f"Liczba obiektów w warstwie: {i}, {len(ListCoorPoly)}")
 
 # Dobre praktyki: usuwamy kursor, aby zwolnić blokadę do pliku .gdb
 del cursor
+
+
+
+#############################################################################################
+## budowanie warstwy poligonowej z dziurą
+#############################################################################################
+NowaWarstwa = "Budynek_01_nowy"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POLYGON", 
+                                    "", "DISABLED", "DISABLED", 
+                                    WarstwaPoligonowa)
+
+cursor = arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@"])
+array = arcpy.Array() # Pusty obiekt na zbieranie wszystkich wierzchołków linii
+part = arcpy.Array()
+pnt = arcpy.Point() # Pusty obiekt na zapisywanie współrzednych wierzchołka jako PUNKT
+for Ob in ListCoorPoly:
+
+    for Wie in Ob:
+        pnt.X, pnt.Y = Wie[0], Wie[1]
+        array.add(pnt)
+
+    # pnt.X, pnt.Y = Ob[0][0], Ob[0][1]
+    # array.add(pnt)
+    # pnt.X, pnt.Y = Ob[-1][0], Ob[-1][1]
+    # array.add(pnt)
+    
+    pol = arcpy.Polyline(array)
+    array.removeAll()
+    cursor.insertRow([pol])
+
+del cursor
+
+
