@@ -8,16 +8,20 @@ WarstwaPoligonowa = "Budynek_01"
 
 # Lista na współrzędne (jeśli chcesz je później wykorzystać)
 ListCoorPoly = []
+ListCoorCentr = []
 
 # SearchCursor – odczyt geometrii (SHAPE@) w postaci obiektów arcpy.Geometry
 # UWAGA: SHAPE@X i SHAPE@Y działają tylko dla geometrii punktowych,
 #        dlatego je usuwamy, bo linie mają wiele wierzchołków.
-cursor = arcpy.da.SearchCursor(WarstwaPoligonowa, ["SHAPE@"])
+cursor = arcpy.da.SearchCursor(WarstwaPoligonowa, ["SHAPE@", "SHAPE@XY"])
 
 i = 0  # licznik obiektów
 
 for row in cursor:
     geom = row[0]  # obiekt geometryczny poligonowy
+    centr = row[1]
+    print(centr)
+    ListCoorCentr.append(centr)
     # print(f"--- Obiekt {i} ---")
     
     ListCoorOb = []
@@ -30,7 +34,9 @@ for row in cursor:
             print(pnt)
             if pnt:  # niektóre części mogą mieć None
                 # print(f"    Wierzchołek: X={pnt.X}, Y={pnt.Y}")
-                ListCoorPart.append((pnt.X, pnt.Y))  # zapis do listy
+                newX = (pnt.X - centr[0])*2
+                newY = (pnt.Y - centr[1])*2
+                ListCoorPart.append((newX, newY))  # zapis do listy
             else:
                 ListCoorOb.append(ListCoorPart)
                 ListCoorPart = []
@@ -51,7 +57,7 @@ del cursor
 #############################################################################################
 ## budowanie warstwy poligonowej z dziurą
 #############################################################################################
-NowaWarstwa = "Budynek_01_nowy"
+NowaWarstwa = "Budynek_01_nowy_02"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POLYGON", 
                                     "", "DISABLED", "DISABLED", 
                                     WarstwaPoligonowa)
@@ -60,21 +66,19 @@ cursor = arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@"])
 array = arcpy.Array() # Pusty obiekt na zbieranie wszystkich wierzchołków linii
 part = arcpy.Array()
 pnt = arcpy.Point() # Pusty obiekt na zapisywanie współrzednych wierzchołka jako PUNKT
+i = 0
 for Ob in ListCoorPoly:
-
-    for Wie in Ob:
-        pnt.X, pnt.Y = Wie[0], Wie[1]
-        array.add(pnt)
-
-    # pnt.X, pnt.Y = Ob[0][0], Ob[0][1]
-    # array.add(pnt)
-    # pnt.X, pnt.Y = Ob[-1][0], Ob[-1][1]
-    # array.add(pnt)
-    
-    pol = arcpy.Polyline(array)
-    array.removeAll()
+    centr = ListCoorCentr[i]
+    for Cze in Ob:
+        for Wie in Cze:
+            pnt.X, pnt.Y = Wie[0] + centr[0], Wie[1] + centr[1]
+            array.add(pnt)
+        part.add(array)
+        array.removeAll()
+    pol = arcpy.Polygon(part)
+    part.removeAll()
     cursor.insertRow([pol])
-
+    i += 1
 del cursor
 
 
