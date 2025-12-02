@@ -12,6 +12,19 @@ LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin) #przechowanie współ
 
 print(R.extent.XMin, R.extent.YMin)
 
+###########################
+NowaWarstwa = "LewtDolnyPunkt.shp"
+arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POINT", 
+                                    "", "DISABLED", "DISABLED", 
+                                    2177)
+
+cursor = arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@X", "SHAPE@Y"])
+# for coor in ListCoor:
+cursor.insertRow([R.extent.XMin, R.extent.YMin])
+
+del cursor
+###################################
+
 RozdzielczoscPrzestrzenna = R.meanCellWidth #rozdzielczość przestrzenna rastra
 
 print(RozdzielczoscPrzestrzenna)
