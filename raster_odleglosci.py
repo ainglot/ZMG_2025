@@ -1,4 +1,9 @@
+import arcpy
 import numpy as np
+
+arcpy.env.workspace = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG"
+
+RasterIn = "77225_1309395_6.221.26.11.3.asc"
 
 def distance_from_center(shape, pixel_size=1.0):
     """
@@ -23,6 +28,15 @@ def distance_from_center(shape, pixel_size=1.0):
 
     return dist
 
+arcpy.env.outputCoordinateSystem = arcpy.SpatialReference(2177) #przypisanie układu współrzędnych do rastra wyjściowego
+R = arcpy.Raster(RasterIn)
+LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin) #przechowanie współrzędnych do lokalizacji rastra wyjściowego
+print(R.extent.XMin, R.extent.YMin)
+RozdzielczoscPrzestrzenna = R.meanCellWidth #rozdzielczość przestrzenna rastra
+print(RozdzielczoscPrzestrzenna)
+NoData = 0 #wartość NoData - w tym rastrze minimalna wartość jest większa niż 0, można tak wykonać
+
+
 # Przykład użycia:
-dist_mat = distance_from_center((5, 5), pixel_size=10)
+dist_mat = distance_from_center((5, 5), pixel_size=RozdzielczoscPrzestrzenna)
 print(dist_mat)
