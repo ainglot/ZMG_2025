@@ -17,14 +17,17 @@ R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = NoData)
 
 rows, cols = R_array.shape
 
+print(R_array)
+
 print("Liczba wierszy:", rows)
 print("Liczba kolumn:", cols)
 
 
-# R_array[100:200, 100:200] = 0 # W lewym gónym rógó rastra "wycinamy" prostokąt
-# outR = arcpy.NumPyArrayToRaster(R_array, LewyDolnyPunkt, RozdzielczoscPrzestrzenna, value_to_nodata = NoData)
+R_array[100:200, 100:300] += 10 # W lewym gónym rógó rastra "wycinamy" prostokąt
+
+outR = arcpy.NumPyArrayToRaster(R_array, LewyDolnyPunkt, RozdzielczoscPrzestrzenna, value_to_nodata = NoData)
 # # zapisać nowy raster trzeba podać - dane (R_array), współrzędne lewego dolnego naroża, rozdzielczość przestrzenną i jaką wartość przyjmuje NoData
-# outR.save("NowyRaster.tif")
+outR.save("NowyRaster02.tif")
 
 
 print("KONIEC")
