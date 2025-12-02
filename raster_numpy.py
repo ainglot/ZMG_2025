@@ -24,9 +24,9 @@ max_row, max_col = np.unravel_index(max_flat, R_array.shape)
 min_val = float(R_array[min_row, min_col])
 max_val = float(R_array[max_row, max_col])
 
-ext = ras.extent
-cell_w = ras.meanCellWidth
-cell_h = ras.meanCellHeight
+ext = R.extent
+cell_w = R.meanCellWidth
+cell_h = R.meanCellHeight
 
 # X lewy, Y górny z geometrii rastra
 x_min = ext.XMin
@@ -43,17 +43,44 @@ max_y = y_max - (max_row + 0.5) * cell_h
 
 rows, cols = R_array.shape
 
-print(R_array)
+out_name = "PunktMinMax.shp"
 
-print("Liczba wierszy:", rows)
-print("Liczba kolumn:", cols)
+# Tworzymy pustą klasę obiektów POINT
+arcpy.management.CreateFeatureclass(
+    out_path=arcpy.env.workspace,
+    out_name=out_name,
+    geometry_type="POINT",
+    spatial_reference=2177
+)
+
+# Dodajemy pola na typ punktu i wartość rastra
+arcpy.management.AddField(out_name, "PT_TYPE", "TEXT", field_length=10)
+arcpy.management.AddField(out_name, "VALUE", "DOUBLE")
+
+# Wstawiamy dwa punkty
+with arcpy.da.InsertCursor(out_name, ["SHAPE@X", "SHAPE@Y", "PT_TYPE", "VALUE"]) as cur:
+    # MIN
+    # p_min = arcpy.Point(min_x, min_y)
+    cur.insertRow([min_x, min_y, "MIN", min_val])
+
+    # MAX
+    # p_max = arcpy.Point(max_x, max_y)
+    cur.insertRow([max_x, max_y, "MAX", max_val])
 
 
-R_array[100:200, 100:300] += 10 # W lewym gónym rógó rastra "wycinamy" prostokąt
 
-outR = arcpy.NumPyArrayToRaster(R_array, LewyDolnyPunkt, RozdzielczoscPrzestrzenna, value_to_nodata = NoData)
-# # zapisać nowy raster trzeba podać - dane (R_array), współrzędne lewego dolnego naroża, rozdzielczość przestrzenną i jaką wartość przyjmuje NoData
-outR.save("NowyRaster02.tif")
+
+# print(R_array)
+
+# print("Liczba wierszy:", rows)
+# print("Liczba kolumn:", cols)
+
+
+# R_array[100:200, 100:300] += 10 # W lewym gónym rógó rastra "wycinamy" prostokąt
+
+# outR = arcpy.NumPyArrayToRaster(R_array, LewyDolnyPunkt, RozdzielczoscPrzestrzenna, value_to_nodata = NoData)
+# # # zapisać nowy raster trzeba podać - dane (R_array), współrzędne lewego dolnego naroża, rozdzielczość przestrzenną i jaką wartość przyjmuje NoData
+# outR.save("NowyRaster02.tif")
 
 
 print("KONIEC")
