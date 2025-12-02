@@ -4,7 +4,7 @@ import arcpy
 arcpy.env.workspace = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\ArcGIS_ZMG.gdb"
 
 # Nazwa warstwy (feature class)
-WarstwaPoligonowa = "Budynek_01"
+WarstwaPoligonowa = "Budynki_02"
 
 # Lista na współrzędne (jeśli chcesz je później wykorzystać)
 ListCoorPoly = []
@@ -34,8 +34,8 @@ for row in cursor:
             print(pnt)
             if pnt:  # niektóre części mogą mieć None
                 # print(f"    Wierzchołek: X={pnt.X}, Y={pnt.Y}")
-                newX = (pnt.X - centr[0])*2
-                newY = (pnt.Y - centr[1])*2
+                newX = (pnt.X - centr[0])*0.5
+                newY = (pnt.Y - centr[1])*0.5
                 ListCoorPart.append((newX, newY))  # zapis do listy
             else:
                 ListCoorOb.append(ListCoorPart)
@@ -57,7 +57,7 @@ del cursor
 #############################################################################################
 ## budowanie warstwy poligonowej z dziurą
 #############################################################################################
-NowaWarstwa = "Budynek_01_nowy_02"
+NowaWarstwa = "Budynki_02_nowy_02"
 arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POLYGON", 
                                     "", "DISABLED", "DISABLED", 
                                     WarstwaPoligonowa)
