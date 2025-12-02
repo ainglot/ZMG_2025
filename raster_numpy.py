@@ -1,36 +1,79 @@
 import arcpy
 import numpy as np
 
+# ==========================
+# 1. USTAWIENIA ŚRODOWISKA
+# ==========================
 arcpy.env.workspace = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG"
 
+# Nazwa rastra wejściowego (musi być w workspace)
 RasterIn = "77225_1309395_6.221.26.11.3.asc"
 
-arcpy.env.outputCoordinateSystem = arcpy.SpatialReference(2177) #przypisanie układu współrzędnych do rastra wyjściowego
+# Układ współrzędnych dla wyników (EPSG 2177)
+sr_2177 = arcpy.SpatialReference(2177)
+arcpy.env.outputCoordinateSystem = sr_2177
+
+
+# ==========================
+# 2. WCZYTANIE RASTRA I PODSTAWOWE PARAMETRY
+# ==========================
 R = arcpy.Raster(RasterIn)
-LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin) #przechowanie współrzędnych do lokalizacji rastra wyjściowego
-print(R.extent.XMin, R.extent.YMin)
-RozdzielczoscPrzestrzenna = R.meanCellWidth #rozdzielczość przestrzenna rastra
-print(RozdzielczoscPrzestrzenna)
-NoData = np.nan #wartość NoData - w tym rastrze minimalna wartość jest większa niż 0, można tak wykonać
 
-R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = NoData)
+# Lewy dolny punkt rastra (przydatny przy tworzeniu nowego rastra z NumPy)
+LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin)
+print("Lewy dolny narożnik rastra:", R.extent.XMin, R.extent.YMin)
 
+# Rozdzielczość przestrzenna
+RozdzielczoscPrzestrzenna = R.meanCellWidth
+print("Rozdzielczość przestrzenna:", RozdzielczoscPrzestrzenna)
+
+# Wartość NoData w tablicy NumPy
+# (tu przyjmujemy np.nan, bo minimalna wartość rastra > 0)
+NoData = np.nan
+
+
+# ==========================
+# 3. RASTER → TABLICA NUMPY
+# ==========================
+R_array = arcpy.RasterToNumPyArray(
+    R,
+    nodata_to_value=NoData
+)
+
+# Wymiary tablicy (wiersze, kolumny)
+rows, cols = R_array.shape
+# print("Liczba wierszy:", rows)
+# print("Liczba kolumn:", cols)
+
+
+# ==========================
+# 4. SZUKANIE MINIMUM I MAKSIMUM W TABLICY
+# ==========================
+# nanargmin / nanargmax ignorują wartości np.nan
 min_flat = np.nanargmin(R_array)
 max_flat = np.nanargmax(R_array)
 
+# Zamiana indeksu spłaszczonego na (wiersz, kolumna)
 min_row, min_col = np.unravel_index(min_flat, R_array.shape)
 max_row, max_col = np.unravel_index(max_flat, R_array.shape)
 
+# Wartości rastra w punktach min / max
 min_val = float(R_array[min_row, min_col])
 max_val = float(R_array[max_row, max_col])
 
+
+# ==========================
+# 5. ZAMIANA (WIERSZ, KOLUMNA) → WSPÓŁRZĘDNE XY
+# ==========================
 ext = R.extent
 cell_w = R.meanCellWidth
 cell_h = R.meanCellHeight
 
-# X lewy, Y górny z geometrii rastra
+# XMin i YMax z rastra
 x_min = ext.XMin
 y_max = ext.YMax
+
+# Środek piksela = XMin + (col + 0.5)*cell_w, YMax - (row + 0.5)*cell_h
 
 # MIN
 min_x = x_min + (min_col + 0.5) * cell_w
@@ -41,60 +84,66 @@ max_x = x_min + (max_col + 0.5) * cell_w
 max_y = y_max - (max_row + 0.5) * cell_h
 
 
-rows, cols = R_array.shape
-
+# ==========================
+# 6. TWORZENIE WARSTWY PUNKTOWEJ I DODANIE MIN / MAX
+# ==========================
 out_name = "PunktMinMax.shp"
 
-# Tworzymy pustą klasę obiektów POINT
+# Tworzymy pustą klasę obiektów typu POINT
 arcpy.management.CreateFeatureclass(
     out_path=arcpy.env.workspace,
     out_name=out_name,
     geometry_type="POINT",
-    spatial_reference=2177
+    spatial_reference=sr_2177
 )
 
 # Dodajemy pola na typ punktu i wartość rastra
 arcpy.management.AddField(out_name, "PT_TYPE", "TEXT", field_length=10)
 arcpy.management.AddField(out_name, "VALUE", "DOUBLE")
 
-# Wstawiamy dwa punkty
+# Wstawiamy dwa punkty: MIN i MAX
 with arcpy.da.InsertCursor(out_name, ["SHAPE@X", "SHAPE@Y", "PT_TYPE", "VALUE"]) as cur:
     # MIN
-    # p_min = arcpy.Point(min_x, min_y)
     cur.insertRow([min_x, min_y, "MIN", min_val])
 
     # MAX
-    # p_max = arcpy.Point(max_x, max_y)
     cur.insertRow([max_x, max_y, "MAX", max_val])
 
 
-
-
-# print(R_array)
-
-# print("Liczba wierszy:", rows)
-# print("Liczba kolumn:", cols)
-
-
-# R_array[100:200, 100:300] += 10 # W lewym gónym rógó rastra "wycinamy" prostokąt
-
-# outR = arcpy.NumPyArrayToRaster(R_array, LewyDolnyPunkt, RozdzielczoscPrzestrzenna, value_to_nodata = NoData)
-# # # zapisać nowy raster trzeba podać - dane (R_array), współrzędne lewego dolnego naroża, rozdzielczość przestrzenną i jaką wartość przyjmuje NoData
+# ==========================
+# 7. KOD OPCJONALNY (PRZYKŁAD MODYFIKACJI RASTRA)
+# ==========================
+# Przykład: modyfikacja fragmentu rastra i zapis do nowego pliku
+#
+# R_array[100:200, 100:300] += 10  # prostokąt w lewym górnym rogu
+#
+# outR = arcpy.NumPyArrayToRaster(
+#     R_array,
+#     LewyDolnyPunkt,
+#     RozdzielczoscPrzestrzenna,
+#     value_to_nodata=NoData
+# )
 # outR.save("NowyRaster02.tif")
 
 
 print("KONIEC")
 
 
-# ###########################
-# NowaWarstwa = "LewtDolnyPunkt.shp"
-# arcpy.management.CreateFeatureclass(arcpy.env.workspace, NowaWarstwa, "POINT", 
-#                                     "", "DISABLED", "DISABLED", 
-#                                     2177)
-
-# cursor = arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@X", "SHAPE@Y"])
-# # for coor in ListCoor:
-# cursor.insertRow([R.extent.XMin, R.extent.YMin])
-
-# del cursor
-# ###################################
+# ==========================
+# 8. KOD ARCHIWALNY / POMOCNICZY (ZACHOWANY JAKO REFERENCJA)
+# ==========================
+# Przykład tworzenia punktu w lewym dolnym narożniku rastra:
+#
+# NowaWarstwa = "LewyDolnyPunkt.shp"
+# arcpy.management.CreateFeatureclass(
+#     arcpy.env.workspace,
+#     NowaWarstwa,
+#     "POINT",
+#     "",
+#     "DISABLED",
+#     "DISABLED",
+#     sr_2177
+# )
+#
+# with arcpy.da.InsertCursor(NowaWarstwa, ["SHAPE@X", "SHAPE@Y"]) as cursor:
+#     cursor.insertRow([R.extent.XMin, R.extent.YMin])
