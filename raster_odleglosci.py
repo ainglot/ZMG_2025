@@ -30,7 +30,7 @@ def distance_from_center(shape, pixel_size=1.0):
 
 arcpy.env.outputCoordinateSystem = arcpy.SpatialReference(2177) #przypisanie układu współrzędnych do rastra wyjściowego
 R = arcpy.Raster(RasterIn)
-LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin) #przechowanie współrzędnych do lokalizacji rastra wyjściowego
+LewyDolnyPunkt = arcpy.Point(6541000.0, 6028000.0) #przechowanie współrzędnych do lokalizacji rastra wyjściowego
 print(R.extent.XMin, R.extent.YMin)
 RozdzielczoscPrzestrzenna = R.meanCellWidth #rozdzielczość przestrzenna rastra
 print(RozdzielczoscPrzestrzenna)
@@ -38,5 +38,10 @@ NoData = 0 #wartość NoData - w tym rastrze minimalna wartość jest większa n
 
 
 # Przykład użycia:
-dist_mat = distance_from_center((5, 5), pixel_size=RozdzielczoscPrzestrzenna)
+dist_mat = distance_from_center((505, 505), pixel_size=1)
 print(dist_mat)
+
+
+outR = arcpy.NumPyArrayToRaster(dist_mat, LewyDolnyPunkt, 1, value_to_nodata = -1)
+# # zapisać nowy raster trzeba podać - dane (R_array), współrzędne lewego dolnego naroża, rozdzielczość przestrzenną i jaką wartość przyjmuje NoData
+outR.save("RDist04.tif")

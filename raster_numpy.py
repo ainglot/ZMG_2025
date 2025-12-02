@@ -11,9 +11,35 @@ LewyDolnyPunkt = arcpy.Point(R.extent.XMin, R.extent.YMin) #przechowanie współ
 print(R.extent.XMin, R.extent.YMin)
 RozdzielczoscPrzestrzenna = R.meanCellWidth #rozdzielczość przestrzenna rastra
 print(RozdzielczoscPrzestrzenna)
-NoData = 0 #wartość NoData - w tym rastrze minimalna wartość jest większa niż 0, można tak wykonać
+NoData = np.nan #wartość NoData - w tym rastrze minimalna wartość jest większa niż 0, można tak wykonać
 
 R_array = arcpy.RasterToNumPyArray(R, nodata_to_value = NoData)
+
+min_flat = np.nanargmin(R_array)
+max_flat = np.nanargmax(R_array)
+
+min_row, min_col = np.unravel_index(min_flat, R_array.shape)
+max_row, max_col = np.unravel_index(max_flat, R_array.shape)
+
+min_val = float(R_array[min_row, min_col])
+max_val = float(R_array[max_row, max_col])
+
+ext = ras.extent
+cell_w = ras.meanCellWidth
+cell_h = ras.meanCellHeight
+
+# X lewy, Y górny z geometrii rastra
+x_min = ext.XMin
+y_max = ext.YMax
+
+# MIN
+min_x = x_min + (min_col + 0.5) * cell_w
+min_y = y_max - (min_row + 0.5) * cell_h
+
+# MAX
+max_x = x_min + (max_col + 0.5) * cell_w
+max_y = y_max - (max_row + 0.5) * cell_h
+
 
 rows, cols = R_array.shape
 
