@@ -67,9 +67,25 @@ for raster in rasters:
     R = arcpy.Raster(raster)
     # print(R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax)
     ListaExtentR.append([raster, [R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax]])
+    RozdzielczoscPrzestrzenna = R.meanCellWidth
 
 print(ListaExtentR)
 
+pkt = (578899.0, 149532.0)
+
+for ras_ext in ListaExtentR:
+    print(f"Nazwa rastra: {ras_ext[0]}, czy punkt jest na rastrze: {czy_punkt_w_zakresie(pkt[0], pkt[1], ras_ext)}")
+    if czy_punkt_w_zakresie(pkt[0], pkt[1], ras_ext):
+        R = arcpy.Raster(ras_ext[0])
+        XMIN_R = R.extent.XMin + (RozdzielczoscPrzestrzenna*0.5)
+        YMAX_R = R.extent.YMax - (RozdzielczoscPrzestrzenna*0.5)
+        col = int(pkt[0] - XMIN_R)
+        row = int(YMAX_R - pkt[1])
+
+        R_array = arcpy.RasterToNumPyArray(R, nodata_to_value=-1)
+
+        print(f"Numer kolumny: {col}, numer wiersza: {row}")
+        print(f"Wartość z rastra: {R_array[row, col]}")
 
 
 print("KONIEC")
