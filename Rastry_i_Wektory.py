@@ -2,6 +2,28 @@ import arcpy
 
 ## WFS - siatka NMT: https://mapy.geoportal.gov.pl/wss/service/PZGIK/NumerycznyModelTerenuEVRF2007/WFS/Skorowidze
 
+#### FUNKCJE ####
+def czy_punkt_w_zakresie(x, y, rekord):
+    """
+    Sprawdza czy punkt (x, y) znajduje się wewnątrz prostokątnego zakresu współrzędnych.
+    
+    Parametry:
+        x (float): współrzędna X punktu
+        y (float): współrzędna Y punktu
+        rekord (tuple lub list): 
+            np. ('81440_1641690_M-34-101-A-c-2-3.asc', [xmin, ymin, xmax, ymax])
+    
+    Zwraca:
+        bool: True jeśli punkt jest wewnątrz (włącznie z brzegami), False w przeciwnym razie
+    """
+    nazwa_pliku, bbox = rekord
+    
+    # bbox to lista [xmin, ymin, xmax, ymax]
+    xmin, ymin, xmax, ymax = bbox
+    
+    return (xmin <= x <= xmax) and (ymin <= y <= ymax)
+
+
 # Ustawienie geobazy roboczej
 arcpy.env.workspace = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\ArcGIS_ZMG.gdb"
 # Nazwa warstwy (feature class)
@@ -37,12 +59,16 @@ print(len(ListCoorLinie[0]))
 Folder_rastry = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\NMT_TATRY"
 arcpy.env.workspace = Folder_rastry
 
+ListaExtentR = []
 # Get and print a list of GRIDs from the workspace
 rasters = arcpy.ListRasters("*", "All")
 for raster in rasters:
     print(raster)
     R = arcpy.Raster(raster)
-    print(R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax)
+    # print(R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax)
+    ListaExtentR.append([raster, [R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax]])
+
+print(ListaExtentR)
 
 
 
