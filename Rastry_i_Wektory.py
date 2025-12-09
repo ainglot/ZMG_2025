@@ -38,9 +38,11 @@ Folder_rastry = r"C:\PG\ZMG_2025_26\ArcGIS_ZMG\NMT_TATRY"
 arcpy.env.workspace = Folder_rastry
 
 # Get and print a list of GRIDs from the workspace
-rasters = arcpy.ListRasters("*", "GRID")
+rasters = arcpy.ListRasters("*", "All")
 for raster in rasters:
     print(raster)
+    R = arcpy.Raster(raster)
+    print(R.extent.XMin, R.extent.YMin, R.extent.XMax, R.extent.YMax)
 
 
 
